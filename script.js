@@ -4,6 +4,9 @@
 // D.A.I.N.X. Nexus
 // Ranger Command Interface
 
+      // D.A.I.N.X. Nexus
+// Ranger Command Interface
+
 document.addEventListener("DOMContentLoaded", () => {
   const commandCards = document.querySelectorAll(".command-card");
   const panels = document.querySelectorAll(".panel");
@@ -16,10 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const systemStatus = document.getElementById("system-status");
 
   const conversation = [];
-
-  // -----------------------------
-  // Module navigation
-  // -----------------------------
 
   commandCards.forEach((card) => {
     card.addEventListener("click", () => {
@@ -37,10 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   });
-
-  // -----------------------------
-  // UI helpers
-  // -----------------------------
 
   function addMessage(label, message, className = "") {
     const wrapper = document.createElement("div");
@@ -67,10 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
       apiStatus.textContent = apiState;
     }
   }
-
-  // -----------------------------
-  // Extract text from Responses API
-  // -----------------------------
 
   function extractResponseText(data) {
     if (!data) {
@@ -103,10 +94,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return "";
   }
-
-  // -----------------------------
-  // Ranger API connection
-  // -----------------------------
 
   async function sendToRanger(message) {
     const response = await fetch("/api/ranger", {
@@ -153,10 +140,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return rangerText;
   }
 
-  // -----------------------------
-  // Mission submission
-  // -----------------------------
-
   rangerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -201,10 +184,6 @@ document.addEventListener("DOMContentLoaded", () => {
       missionInput.focus();
     }
   });
-
-  // -----------------------------
-  // Initial system state
-  // -----------------------------
 
   systemStatus.textContent = "NEXUS ONLINE";
   setRangerState("READY", "READY");
