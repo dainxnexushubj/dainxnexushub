@@ -1,26 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-
-
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dang X Nexus</title>
+  <meta name="description" content="D.A.I.N.X. Nexus - Advanced Intelligence Command Center">
+  <title>D.A.I.N.X. Nexus</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
+  <div class="app-shell">
 
-  <main>
-    <h1>Dang X Nexus</h1>
-    <h2>Ranger AI Control Center</h2>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">D</div>
+        <div>
+          <h1>D.A.I.N.X. Nexus</h1>
+          <p>Advanced Intelligence Command Center</p>
+        </div>
+      </div>
 
-    <p id="status">System initializing...</p>
-  </main>
+      <div class="system-state">
+        <span class="status-dot"></span>
+        <span id="system-status">NEXUS ONLINE</span>
+      </div>
+    </header>
+
+    <main class="dashboard">
+
+      <section class="hero-panel">
+        <div>
+          <span class="eyebrow">RANGER AI</span>
+          <h2>Mission Control</h2>
+          <p>
+            Turn information into direction, action, and measurable progress.
+          </p>
+        </div>
+
+        <div class="mission-state">
+          <span>STATUS</span>
+          <strong id="ranger-status">READY</strong>
+        </div>
+      </section>
+
+      <section class="command-grid">
+
+        <button class="command-card active" data-panel="ranger">
+          <span class="card-icon">◆</span>
+          <span class="card-title">Ranger</span>
+          <span class="card-description">AI mission command</span>
+        </button>
+
+        <button class="command-card" data-panel="production">
+          <span class="card-icon">⚙</span>
+          <span class="card-title">Production</span>
+          <span class="card-description">Projects and workflows</span>
+        </button>
+
+        <button class="command-card" data-panel="efficiency">
+          <span class="card-icon">↗</span>
+          <span class="card-title">Efficiency</span>
+          <span class="card-description">Priorities and bottlenecks</span>
+        </button>
+
+        <button class="command-card" data-panel="operations">
+          <span class="card-icon">◉</span>
+          <span class="card-title">Operations</span>
+          <span class="card-description">Missions and system activity</span>
+        </button>
+
+        <button class="command-card" data-panel="intelligence">
+          <span class="card-icon">✦</span>
+          <span class="card-title">Intelligence</span>
+          <span class="card-description">Research and decisions</span>
+        </button>
+
+        <button class="command-card" data-panel="control">
+          <span class="card-icon">⌘</span>
+          <span class="card-title">Control</span>
+          <span class="card-description">System configuration</span>
+        </button>
+
+      </section>
+
+      <section class="workspace">
+
+        <div class="panel panel-ranger" data-content="ranger">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">ACTIVE MODULE</span>
+              <h3>Ranger Mission Console</h3>
+            </div>
+            <span class="module-status">ONLINE</span>
+          </div>
+
+          <div class="ranger-output" id="ranger-output">
+            <div class="output-message system-message">
+              <span class="message-label">RANGER</span>
+              <p>
+                System ready. Submit a mission objective to begin.
+              </p>
+            </div>
+          </div>
+
+          <form id="ranger-form" class="ranger-form">
+            <label for="mission-input">Mission objective</label>
+
+            <div class="input-row">
+              <textarea
+                id="mission-input"
+                name="mission"
+                rows="3"
+                placeholder="What needs to be accomplished?"
+                required
+              ></textarea>
+
+              <button type="submit" id="ranger-submit">
+                EXECUTE
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel hidden" data-content="production">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">PRODUCTION</span>
+              <h3>Production Command</h3>
+            </div>
+          </div>
+
+          <div class="placeholder-grid">
+            <div class="metric-card">
+              <span>ACTIVE PROJECTS</span>
+              <strong>0</strong>
+            </div>
+
+            <div class="metric-card">
+              <span>IN PROGRESS</span>
+              <strong>0</strong>
+            </div>
+
+            <div class="metric-card">
+              <span>COMPLETED</span>
+              <strong>0</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel hidden" data-content="efficiency">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">EFFICIENCY</span>
+              <h3>Efficiency Monitor</h3>
+            </div>
+          </div>
+
+          <div class="empty-state">
+            <strong>Efficiency systems ready.</strong>
+            <p>
+              Priority tracking, bottleneck detection, and performance metrics
+              will appear here.
+            </p>
+          </div>
+        </div>
+
+        <div class="panel hidden" data-content="operations">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">OPERATIONS</span>
+              <h3>Operations Center</h3>
+            </div>
+          </div>
+
+          <div class="empty-state">
+            <strong>Operations center ready.</strong>
+            <p>
+              Active missions, alerts, logs, and system activity will appear here.
+            </p>
+          </div>
+        </div>
+
+        <div class="panel hidden" data-content="intelligence">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">INTELLIGENCE</span>
+              <h3>Intelligence Center</h3>
+            </div>
+          </div>
+
+          <div class="empty-state">
+            <strong>Intelligence systems ready.</strong>
+            <p>
+              Research, knowledge, memory, and decision support will appear here.
+            </p>
+          </div>
+        </div>
+
+        <div class="panel hidden" data-content="control">
+          <div class="panel-header">
+            <div>
+              <span class="eyebrow">CONTROL</span>
+              <h3>System Control</h3>
+            </div>
+          </div>
+
+          <div class="control-list">
+            <div>
+              <span>CORE WORKER</span>
+              <strong>CONNECTED</strong>
+            </div>
+
+            <div>
+              <span>RANGER API</span>
+              <strong id="api-status">READY</strong>
+            </div>
+
+            <div>
+              <span>STATIC ASSETS</span>
+              <strong>ONLINE</strong>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+    <footer>
+      <span>D.A.I.N.X. NEXUS</span>
+      <span>RANGER COMMAND SYSTEM</span>
+    </footer>
+
+  </div>
 
   <script src="script.js"></script>
-
 </body>
 </html>
