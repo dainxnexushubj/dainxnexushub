@@ -1,0 +1,14 @@
+// Cloudflare Worker configuration (JSONC).
+// Do NOT include account_id or secrets here.
+// Provide CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID via GitHub Actions secrets.
+
+{
+  "name": "dainx-nexus-worker",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-08-30",
+
+  "assets": {
+    "directory": ".",
+    "binding": "ASSETS"
+  }
+}
