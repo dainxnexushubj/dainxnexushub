@@ -1,0 +1,65 @@
+/* Dang X Nexus
+   Modern Tactical Command Center
+*/
+
+:root {
+  --bg: #0b0f0c;
+  --panel: #111813;
+  --panel-light: #182119;
+  --green: #8fae82;
+  --green-bright: #b8d6a5;
+  --text: #e7eee4;
+  --muted: #879487;
+  --border: #2a352b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, #182119 0%, var(--bg) 55%);
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+main {
+  width: min(90%, 700px);
+  padding: 40px;
+  background: rgba(17, 24, 19, 0.92);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+h1 {
+  margin: 0 0 8px;
+  color: var(--green-bright);
+  font-size: 2.4rem;
+  letter-spacing: 2px;
+}
+
+h2 {
+  margin: 0 0 25px;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: normal;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+#status {
+  margin: 0;
+  padding: 14px 16px;
+  background: var(--panel-light);
+  border-left: 3px solid var(--green);
+  color: var(--green-bright);
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
