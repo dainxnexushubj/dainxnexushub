@@ -100,7 +100,7 @@ const CORS_HEADERS = {
 };
 
 async function callOpenAIResponses(payload, apiKey) {
-  const res = await fetch("https://api.openai.com/v1/responses", {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -248,7 +248,7 @@ export default {
 
       const openaiPayload = {
         model,
-        input: inputs,
+        messages: inputs,
       };
 
       try {
