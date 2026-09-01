@@ -5,17 +5,17 @@
  * - Serves static frontend assets from the repository root using env.ASSETS.fetch(request)
  * - Accepts POST /api/ranger with JSON body:
  *   { messages: [{ role, content }...], model?: "model-name" }
- * - Prepends the embedded RANGER operating code and calls the OpenAI Responses API
- *   using env.OPENAI_API_KEY.
+ * - Prepends the embedded RANGER operating code and calls the OpenRouter Chat Completions API
+ *   using env.OPENROUTER_API_KEY.
  *
  * Constraints:
  * - No auth, rate-limiting, streaming, DNS automation, or secret upload automation included.
  *
  * IMPORTANT:
- * - Set OPENAI_API_KEY as a Cloudflare Worker secret.
+ * - Set OPENROUTER_API_KEY as a Cloudflare Worker secret.
  */
 
-const DEFAULT_MODEL = "gpt-4o-mini";
+const DEFAULT_MODEL = "openrouter/free";
 
 const RANGER_SYSTEM_PROMPT = `
 Purpose:
@@ -99,8 +99,8 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-async function callOpenAIResponses(payload, apiKey) {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+async function callOpenRouterChatCompletions(payload, apiKey) {
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -178,12 +178,12 @@ export default {
       request.method === "POST" &&
       url.pathname === "/api/ranger"
     ) {
-      const OPENAI_API_KEY = env.OPENAI_API_KEY;
+      const OPENROUTER_API_KEY = env.OPENROUTER_API_KEY;
 
-      if (!OPENAI_API_KEY) {
+      if (!OPENROUTER_API_KEY) {
         return new Response(
           JSON.stringify({
-            error: "OPENAI_API_KEY not configured in Worker",
+            error: "OPENROUTER_API_KEY not configured in Worker",
           }),
           {
             status: 500,
@@ -246,15 +246,15 @@ export default {
         })),
       ];
 
-      const openaiPayload = {
+      const openRouterPayload = {
         model,
         messages: inputs,
       };
 
       try {
-        const result = await callOpenAIResponses(
-          openaiPayload,
-          OPENAI_API_KEY
+        const result = await callOpenRouterChatCompletions(
+          openRouterPayload,
+          OPENROUTER_API_KEY
         );
 
         return new Response(JSON.stringify(result.body), {
@@ -267,7 +267,7 @@ export default {
       } catch (err) {
         return new Response(
           JSON.stringify({
-            error: err.message || "OpenAI request failed",
+            error: err.message || "OpenRouter request failed",
           }),
           {
             status: 502,
