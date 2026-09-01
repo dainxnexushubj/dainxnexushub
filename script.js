@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function sendToRanger(message) {
-    const response = await fetch("/api/ranger", {
+    const response = await fetch("https://dainxnexushub.dainxnexushub.workers.dev/api/ranger", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
