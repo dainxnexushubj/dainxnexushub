@@ -72,6 +72,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return data.output_text;
     }
 
+    if (data.choices?.[0]?.message?.content) {
+      return data.choices[0].message.content;
+    }
+
     if (Array.isArray(data.output)) {
       const textParts = [];
 
