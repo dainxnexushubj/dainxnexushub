@@ -1,18 +1,7 @@
 /**
  * src/worker.js
  *
- * Ranger built-in Worker:
- * - Serves static frontend assets from the repository root using env.ASSETS.fetch(request)
- * - Accepts POST /api/ranger with JSON body:
- *   { messages: [{ role, content }...], model?: "model-name" }
- * - Prepends the embedded RANGER operating code and calls the OpenRouter Chat Completions API
- *   using env.OPENROUTER_API_KEY.
- *
- * Constraints:
- * - No auth, rate-limiting, streaming, DNS automation, or secret upload automation included.
- *
- * IMPORTANT:
- * - Set OPENROUTER_API_KEY as a Cloudflare Worker secret.
+ * Ranger built-in Worker with D1 mission storage.
  */
 
 const DEFAULT_MODEL = "openrouter/free";
@@ -44,45 +33,51 @@ Before returning actions, run a brief internal check:
   - What could go wrong and how to detect it?
 
 Use Resources Intelligently:
-Prefer solutions that reuse existing capabilities and minimize privileged operations. When proposing resource usage (compute, tokens, services),
-state the cost/benefit and any privacy implications.
+Prefer solutions that reuse existing capabilities and minimize privileged operations. When proposing resource usage, state the cost/benefit and
+any privacy implications.
 
 Keep Information Clean:
 Return outputs that separate facts, assumptions, actions, and questions. Use short lists, headings, and machine-friendly formats when relevant.
 
 Report Clearly:
-When reporting, use a compact, repeatable format so automation or humans can parse it:
-  - SUMMARY — single concise sentence of what changed/what is recommended.
-  - ACTIONS — numbered, prioritized steps (each with owner/effort estimate/expected result).
-  - RATIONALE — why these actions matter, plus key evidence.
-  - RISKS/ASSUMPTIONS — what could invalidate success and what assumptions were made.
-  - NEXT — minimal next move to continue momentum.
+When reporting, use a compact, repeatable format:
+  - SUMMARY
+  - ACTIONS
+  - RATIONALE
+  - RISKS/ASSUMPTIONS
+  - NEXT
 
 Adapt Without Losing the Mission:
-If new information appears, reconcile it to previous guidance and explain why your recommendation changes (or does not). Keep mission continuity.
+If new information appears, reconcile it to previous guidance and explain why your recommendation changes or does not.
 
 Know the Limits:
-If the request requires specialized knowledge, privileged access, or violates safety policy, refuse or constrain output and explain why. Propose safe, lower-privilege alternatives.
+If the request requires specialized knowledge, privileged access, or violates safety policy, refuse or constrain output and explain why.
 
 Leave the Next Move Stronger:
-Every output should leave the system or team with a testable next step and a way to verify success or failure.
+Every output should leave the system or team with a testable next step.
 
 Mission Intake:
 When accepting mission input, map it into:
-  - Goal: what success looks like (one sentence)
-  - Constraints: time, privacy, cost, approvals
-  - Available resources: tools, APIs, data
-  - Uncertainties: what needs verification
+  - Goal
+  - Constraints
+  - Available resources
+  - Uncertainties
 
 Observe → Verify → Assess → Act → Report → Adapt:
-Use this cycle as the backbone of reasoning. For each proposed action, state where in the cycle it belongs.
+Use this cycle as the backbone of reasoning.
 
 Ranger reporting format:
 Always return a clear, machine- and human-readable block containing:
 {
   "summary": "<one-line summary>",
   "actions": [
-    { "id": 1, "instruction": "<action text>", "owner": "<role>", "effort": "<mins/hours>", "expected_result": "<observable outcome>" }
+    {
+      "id": 1,
+      "instruction": "<action text>",
+      "owner": "<role>",
+      "effort": "<mins/hours>",
+      "expected_result": "<observable outcome>"
+    }
   ],
   "rationale": "<brief>",
   "risks_and_assumptions": ["..."],
@@ -100,14 +95,17 @@ const CORS_HEADERS = {
 };
 
 async function callOpenRouterChatCompletions(payload, apiKey) {
-  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  const res = await fetch(
+    "https://openrouter.ai/api/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    }
+  );
 
   const ct = res.headers.get("content-type") || "";
 
@@ -131,9 +129,7 @@ async function serveStatic(request, env) {
     if (assetResponse.status !== 404) {
       return assetResponse;
     }
-  } catch (e) {
-    // Fall through to index fallback.
-  }
+  } catch (e) {}
 
   try {
     const url = new URL(request.url);
@@ -165,15 +161,189 @@ export default {
       request.method === "GET" &&
       (url.pathname === "/_health" || url.pathname === "/health")
     ) {
-      return new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          ...CORS_HEADERS,
-        },
-      });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          database: !!env.DB,
+        }),
+        {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+            ...CORS_HEADERS,
+          },
+        }
+      );
     }
 
+    /*
+     * GET /api/missions
+     *
+     * Returns saved Ranger missions.
+     */
+    if (
+      request.method === "GET" &&
+      url.pathname === "/api/missions"
+    ) {
+      if (!env.DB) {
+        return new Response(
+          JSON.stringify({
+            error: "D1 database binding DB is not configured",
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+
+      try {
+        const result = await env.DB
+          .prepare(
+            "SELECT id, goal, status FROM missions ORDER BY id DESC"
+          )
+          .all();
+
+        return new Response(
+          JSON.stringify({
+            missions: result.results || [],
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({
+            error: err.message || "Failed to read missions",
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+    }
+
+    /*
+     * POST /api/missions
+     *
+     * Saves a new Ranger mission.
+     *
+     * Body:
+     * {
+     *   "goal": "Build Ranger",
+     *   "status": "active"
+     * }
+     */
+    if (
+      request.method === "POST" &&
+      url.pathname === "/api/missions"
+    ) {
+      if (!env.DB) {
+        return new Response(
+          JSON.stringify({
+            error: "D1 database binding DB is not configured",
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+
+      let body;
+
+      try {
+        body = await request.json();
+      } catch (err) {
+        return new Response(
+          JSON.stringify({
+            error: "Invalid JSON body",
+          }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+
+      const goal = String(body.goal || "").trim();
+      const status = String(body.status || "active").trim();
+
+      if (!goal) {
+        return new Response(
+          JSON.stringify({
+            error: "Mission goal is required",
+          }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+
+      try {
+        const result = await env.DB
+          .prepare(
+            "INSERT INTO missions (goal, status) VALUES (?, ?)"
+          )
+          .bind(goal, status)
+          .run();
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            id: result.meta?.last_row_id || null,
+            goal,
+            status,
+          }),
+          {
+            status: 201,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({
+            error: err.message || "Failed to save mission",
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+    }
+
+    /*
+     * POST /api/ranger
+     */
     if (
       request.method === "POST" &&
       url.pathname === "/api/ranger"
