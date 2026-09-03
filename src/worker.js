@@ -497,9 +497,33 @@ export default {
       ];
 
       const openRouterPayload = {
-        model,
-        messages: inputs,
-      };
+  model,
+  messages: inputs,
+  tools: [
+    {
+      type: "function",
+      function: {
+        name: "mission_create",
+        description: "Create and save a mission in Ranger's persistent D1 storage.",
+        parameters: {
+          type: "object",
+          properties: {
+            goal: {
+              type: "string",
+              description: "The mission goal or name.",
+            },
+            status: {
+              type: "string",
+              description: "Mission status, such as active or completed.",
+            },
+          },
+          required: ["goal"],
+        },
+      },
+    },
+  ],
+  tool_choice: "auto",
+};
 
       try {
         const result = await callOpenRouterChatCompletions(
