@@ -401,7 +401,73 @@ export default {
       const clientMessages = Array.isArray(body.messages)
         ? body.messages
         : [];
+    const tool = body.tool;
 
+    if (tool === "mission_create") {
+      if (!env.DB) {
+        return new Response(
+          JSON.stringify({
+            error: "D1 database binding DB is not configured",
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+
+      const goal = String(body.goal || "").trim();
+      const status = String(body.status || "active").trim();
+
+      if (!goal) {
+        return new Response(
+          JSON.stringify({
+            error: "Mission goal is required",
+          }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+
+      try {
+        const mission = await createMission(env.DB, goal, status);
+
+        return new Response(
+          JSON.stringify({
+            tool: "mission_create",
+            result: mission,
+          }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      } catch (err) {
+        return new Response(
+          JSON.stringify({
+            error: err.message || "Failed to create mission",
+          }),
+          {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              ...CORS_HEADERS,
+            },
+          }
+        );
+      }
+    }
       if (clientMessages.length === 0) {
         return new Response(
           JSON.stringify({
