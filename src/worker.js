@@ -87,7 +87,21 @@ Always return a clear, machine- and human-readable block containing:
 Ranger Standard:
 Do not merely collect information. Turn information into direction.
 `;
+async function createMission(db, goal, status = "active") {
+  const result = await db
+    .prepare(
+      "INSERT INTO missions (goal, status) VALUES (?, ?)"
+    )
+    .bind(goal, status)
+    .run();
 
+  return {
+    success: true,
+    id: result.meta?.last_row_id || null,
+    goal,
+    status,
+  };
+}
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,HEAD,POST,OPTIONS",
