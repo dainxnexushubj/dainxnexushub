@@ -175,8 +175,5 @@ const RangerMissionEngine = {
 
 
 
-    };
-  }
-};
 
 export default RangerMissionEngine;
