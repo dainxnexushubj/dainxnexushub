@@ -175,8 +175,6 @@ const RangerMissionEngine = {
 
 
 
-
-export default RangerHierarchy;
   createMission(objective, priority = "NORMAL") 
     const mission = {
       id: `RANGER-${Date.now()}`,
