@@ -175,7 +175,7 @@ const RangerMissionEngine = {
 
 
 
-  createMission(objective, priority = "NORMAL") 
+  createMission(objective, priority = "NORMAL"){ 
     const mission = {
       id: `RANGER-${Date.now()}`,
       name: objective,
@@ -185,7 +185,7 @@ const RangerMissionEngine = {
       created: new Date().toISOString()
     };
 
-    return mission;
+    return mission;},
   
 
   authorizeMission(mission, actor = "Daniel Williamston") {
