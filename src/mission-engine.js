@@ -175,7 +175,7 @@ const RangerMissionEngine = {
 
 
 
-  createMission(objective, priority = "NORMAL"){ 
+  createMission(objective, priority = "NORMAL");
     const mission = {
       id: `RANGER-${Date.now()}`,
       name: objective,
