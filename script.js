@@ -1,197 +1,159 @@
-// Dang X Nexus
-// Initial system behavior
-
-// D.A.I.N.X. Nexus
-// Ranger Command Interface
-
-      // D.A.I.N.X. Nexus
-// Ranger Command Interface
+// D.A.I.N.X NEXUS
+// RANGER CONTROL CENTER
+// Frontend Controller
+// Version 1.0
 
 document.addEventListener("DOMContentLoaded", () => {
-  const commandCards = document.querySelectorAll(".command-card");
-  const panels = document.querySelectorAll(".panel");
-  const rangerForm = document.getElementById("ranger-form");
-  const missionInput = document.getElementById("mission-input");
-  const rangerOutput = document.getElementById("ranger-output");
-  const rangerSubmit = document.getElementById("ranger-submit");
-  const rangerStatus = document.getElementById("ranger-status");
-  const apiStatus = document.getElementById("api-status");
-  const systemStatus = document.getElementById("system-status");
+  const status = document.getElementById("status");
+  const targetGoal = document.getElementById("target-goal");
+  const projectStatus = document.getElementById("project-status");
+  const nextAction = document.getElementById("next-action");
+  const progress = document.getElementById("progress");
+  const faults = document.getElementById("faults");
+  const timeline = document.getElementById("timeline");
 
-  const conversation = [];
+  // --------------------------------------------------
+  // RANGER STATUS
+  // --------------------------------------------------
 
-  commandCards.forEach((card) => {
-    card.addEventListener("click", () => {
-      const target = card.dataset.panel;
-
-      commandCards.forEach((item) => {
-        item.classList.toggle("active", item === card);
-      });
-
-      panels.forEach((panel) => {
-        panel.classList.toggle(
-          "hidden",
-          panel.dataset.content !== target
-        );
-      });
-    });
-  });
-
-  function addMessage(label, message, className = "") {
-    const wrapper = document.createElement("div");
-    wrapper.className = `output-message ${className}`.trim();
-
-    const labelElement = document.createElement("span");
-    labelElement.className = "message-label";
-    labelElement.textContent = label;
-
-    const textElement = document.createElement("p");
-    textElement.textContent = message;
-
-    wrapper.appendChild(labelElement);
-    wrapper.appendChild(textElement);
-
-    rangerOutput.appendChild(wrapper);
-    rangerOutput.scrollTop = rangerOutput.scrollHeight;
-  }
-
-  function setRangerState(status, apiState = null) {
-    rangerStatus.textContent = status;
-
-    if (apiState) {
-      apiStatus.textContent = apiState;
+  function setStatus(message) {
+    if (status) {
+      status.textContent = message;
     }
   }
 
-  function extractResponseText(data) {
-    if (!data) {
-      return "";
-    }
+  async function checkRangerStatus() {
+    try {
+      const response = await fetch("/api/ranger/status");
 
-    if (typeof data.output_text === "string") {
-      return data.output_text;
-    }
-
-    if (data.choices?.[0]?.message?.content) {
-      return data.choices[0].message.content;
-    }
-
-    if (Array.isArray(data.output)) {
-      const textParts = [];
-
-      data.output.forEach((item) => {
-        if (!Array.isArray(item.content)) {
-          return;
-        }
-
-        item.content.forEach((content) => {
-          if (typeof content.text === "string") {
-            textParts.push(content.text);
-          }
-        });
-      });
-
-      if (textParts.length > 0) {
-        return textParts.join("\n");
+      if (!response.ok) {
+        throw new Error("Ranger status unavailable.");
       }
-    }
 
-    return "";
+      const data = await response.json();
+
+      if (data.status === "ONLINE") {
+        setStatus("RANGER ONLINE • ENGINE READY");
+      } else {
+        setStatus("RANGER OFFLINE");
+      }
+
+      return data;
+    } catch (error) {
+      setStatus("RANGER CONNECTION ERROR");
+      console.error("Ranger status error:", error);
+      return null;
+    }
   }
 
-  async function sendToRanger(message) {
-    const response = await fetch("https://dainxnexushub.dainxnexushub.workers.dev/api/ranger", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        messages: [
-          ...conversation,
-          {
-            role: "user",
-            content: message
-          }
-        ]
-      })
-    });
+  // --------------------------------------------------
+  // MISSION EXECUTION
+  // --------------------------------------------------
 
-    let data;
+  async function sendMission(objective, priority = "NORMAL") {
+    if (!objective || !objective.trim()) {
+      setStatus("MISSION OBJECTIVE REQUIRED");
+      return null;
+    }
+
+    setStatus("RANGER PROCESSING MISSION...");
 
     try {
-      data = await response.json();
+      const response = await fetch("/api/ranger", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          objective: objective.trim(),
+          priority,
+          actor: "Daniel Williamston"
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setStatus("MISSION BLOCKED OR FAILED");
+        console.error("Ranger mission error:", data);
+        return data;
+      }
+
+      setStatus("MISSION COMPLETE • MEMORY UPDATED");
+
+      updateDashboard(data);
+
+      return data;
     } catch (error) {
-      throw new Error(
-        `Ranger returned an invalid response. HTTP ${response.status}.`
-      );
+      setStatus("RANGER EXECUTION ERROR");
+      console.error("Ranger execution error:", error);
+      return null;
     }
-
-    if (!response.ok) {
-      const errorMessage =
-        data?.error?.message ||
-        data?.error ||
-        `Ranger request failed with HTTP ${response.status}.`;
-
-      throw new Error(errorMessage);
-    }
-
-    const rangerText = extractResponseText(data);
-
-    if (!rangerText) {
-      throw new Error("Ranger returned no readable response.");
-    }
-
-    return rangerText;
   }
 
-  rangerForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  // --------------------------------------------------
+  // DASHBOARD UPDATE
+  // --------------------------------------------------
 
-    const mission = missionInput.value.trim();
-
-    if (!mission) {
+  function updateDashboard(data) {
+    if (!data || !data.mission) {
       return;
     }
 
-    addMessage("MISSION", mission, "user-message");
+    const mission = data.mission;
 
-    conversation.push({
-      role: "user",
-      content: mission
-    });
-
-    missionInput.value = "";
-    rangerSubmit.disabled = true;
-    setRangerState("PROCESSING", "CONNECTING");
-
-    try {
-      const responseText = await sendToRanger(mission);
-
-      conversation.push({
-        role: "assistant",
-        content: responseText
-      });
-
-      addMessage("RANGER", responseText);
-      setRangerState("READY", "ONLINE");
-    } catch (error) {
-      addMessage(
-        "RANGER ERROR",
-        error.message || "Unable to communicate with Ranger.",
-        "error-message"
-      );
-
-      setRangerState("ERROR", "ERROR");
-      console.error("Ranger API error:", error);
-    } finally {
-      rangerSubmit.disabled = false;
-      missionInput.focus();
+    if (targetGoal) {
+      targetGoal.textContent = mission.objective || "No active objective";
     }
-  });
 
-  systemStatus.textContent = "NEXUS ONLINE";
-  setRangerState("READY", "READY");
+    if (projectStatus) {
+      projectStatus.textContent = mission.status || "UNKNOWN";
+    }
 
-  console.log("D.A.I.N.X. Nexus initialized.");
-  console.log("Ranger interface ready.");
+    if (nextAction) {
+      if (mission.tasks && mission.tasks.length > 0) {
+        nextAction.textContent = mission.tasks[0].description;
+      } else {
+        nextAction.textContent = "Mission completed";
+      }
+    }
+
+    if (progress) {
+      progress.textContent = mission.status === "COMPLETED"
+        ? "100%"
+        : "IN PROGRESS";
+    }
+
+    if (timeline) {
+      timeline.textContent =
+        mission.created
+          ? `Mission created: ${mission.created}`
+          : "Timeline unavailable";
+    }
+
+    if (faults) {
+      faults.textContent =
+        data.governance && !data.governance.approved
+          ? "GOVERNANCE BLOCK"
+          : "NONE DETECTED";
+    }
+  }
+
+  // --------------------------------------------------
+  // RANGER COMMAND API
+  // --------------------------------------------------
+
+  window.Ranger = {
+    status: checkRangerStatus,
+    mission: sendMission
+  };
+
+  // --------------------------------------------------
+  // INITIALIZE
+  // --------------------------------------------------
+
+  checkRangerStatus();
+
+  console.log("D.A.I.N.X NEXUS initialized.");
+  console.log("RANGER CONTROL CENTER ONLINE.");
 });
