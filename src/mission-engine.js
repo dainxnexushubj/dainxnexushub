@@ -185,7 +185,7 @@ const RangerMissionEngine = {
       created: new Date().toISOString()
     };
 
-    return mission;},
+    return mission;,
   
 
   authorizeMission(mission, actor = "Daniel Williamston") {
