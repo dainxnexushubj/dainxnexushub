@@ -174,7 +174,7 @@ const RangerMissionEngine = {
 
 
 
-aa
+
 
 export default RangerHierarchy;
   createMission(objective, priority = "NORMAL") {
