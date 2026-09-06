@@ -1,6 +1,6 @@
 // D.A.I.N.X NEXUS
 // RANGER WORKER
-// Version 1.0
+// Version 1.1
 
 import RangerMissionEngine from "./mission-engine.js";
 
@@ -23,8 +23,20 @@ function response(data, status = 200) {
   });
 }
 
+function errorResponse(message, status = 400) {
+  return response(
+    {
+      success: false,
+      owner: RANGER_OWNER,
+      actor: RANGER_ACTOR,
+      error: message
+    },
+    status
+  );
+}
+
 export default {
-  async fetch(request, env) {
+  async fetch(request) {
     const url = new URL(request.url);
 
     // CORS preflight
@@ -36,7 +48,10 @@ export default {
     }
 
     // Ranger health check
-    if (url.pathname === "/api/ranger/status" && request.method === "GET") {
+    if (
+      url.pathname === "/api/ranger/status" &&
+      request.method === "GET"
+    ) {
       return response({
         system: "D.A.I.N.X NEXUS",
         branch: "RANGER",
@@ -48,51 +63,52 @@ export default {
     }
 
     // Ranger mission endpoint
-    if (url.pathname === "/api/ranger" && request.method === "POST") {
+    if (
+      url.pathname === "/api/ranger" &&
+      request.method === "POST"
+    ) {
       try {
         const body = await request.json();
 
-        if (!body.objective) {
-          return response(
-            {
-              success: false,
-              error: "Mission objective is required."
-            },
+        if (
+          !body ||
+          typeof body.objective !== "string" ||
+          !body.objective.trim()
+        ) {
+          return errorResponse(
+            "Mission objective is required.",
             400
           );
         }
 
+        const objective = body.objective.trim();
+        const priority = body.priority || "NORMAL";
+
+        // Mission Engine owns the mission lifecycle.
         const result = RangerMissionEngine.run(
-          body.objective,
-          body.priority || "NORMAL",
+          objective,
+          priority,
           RANGER_ACTOR
         );
 
+        // Preserve the Mission Engine's actual success state.
         return response({
-          success: true,
           owner: RANGER_OWNER,
           actor: RANGER_ACTOR,
-          ...result
+          ...result,
+          success: result.success === true
         });
       } catch (error) {
-        return response(
-          {
-            success: false,
-            owner: RANGER_OWNER,
-            actor: RANGER_ACTOR,
-            error: "Ranger execution error.",
-            details: error.message
-          },
+        return errorResponse(
+          `Ranger execution error: ${error.message}`,
           500
         );
       }
     }
 
-    return response(
-      {
-        success: false,
-        error: "Ranger endpoint not found."
-      },
+    // Unknown endpoint
+    return errorResponse(
+      "Ranger endpoint not found.",
       404
     );
   }
