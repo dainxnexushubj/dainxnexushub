@@ -4,6 +4,9 @@
 
 import RangerMissionEngine from "./mission-engine.js";
 
+const RANGER_OWNER = "Daniel Williamston";
+const RANGER_ACTOR = "RANGER";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -38,7 +41,9 @@ export default {
         system: "D.A.I.N.X NEXUS",
         branch: "RANGER",
         status: "ONLINE",
-        engine: "READY"
+        engine: "READY",
+        owner: RANGER_OWNER,
+        actor: RANGER_ACTOR
       });
     }
 
@@ -60,14 +65,21 @@ export default {
         const result = RangerMissionEngine.run(
           body.objective,
           body.priority || "NORMAL",
-          body.actor || "Daniel Williamston"
+          RANGER_ACTOR
         );
 
-        return response(result);
+        return response({
+          success: true,
+          owner: RANGER_OWNER,
+          actor: RANGER_ACTOR,
+          ...result
+        });
       } catch (error) {
         return response(
           {
             success: false,
+            owner: RANGER_OWNER,
+            actor: RANGER_ACTOR,
             error: "Ranger execution error.",
             details: error.message
           },
