@@ -5,10 +5,6 @@
 import RangerMemory from "./memory.js";
 import RangerHierarchy from "./hierarchy.js";
 import RangerGovernance from "./governance.js";
-// D.A.I.N.X NEXUS
-// RANGER MISSION EXECUTION ENGINE
-// Version 1.0
-
 
 const RangerMissionEngine = {
   system: "D.A.I.N.X NEXUS",
@@ -170,10 +166,5 @@ const RangerMissionEngine = {
     };
   }
 };
-
-
-
-
-
 
 export default RangerMissionEngine;
