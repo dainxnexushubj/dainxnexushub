@@ -3,7 +3,7 @@
 // Version 1.0
 
 import RangerMemory from "./memory.js";
-import RangerHierarchy from "./hierarchy.js";
+
 import RangerGovernance from "./governance.js";
 
 const RangerMissionEngine = {
