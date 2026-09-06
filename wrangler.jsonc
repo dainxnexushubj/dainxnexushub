@@ -4,7 +4,7 @@
 
 {
   "name": "dainxnexushub",
-  "main": "src/worker.js",
+  "main": "./src/worker.js"
   "compatibility_date": "2026-08-30",
 
   "assets": {
