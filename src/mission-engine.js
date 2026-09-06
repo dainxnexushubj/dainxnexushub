@@ -186,7 +186,7 @@ const RangerMissionEngine = {
     };
 
     return mission;
-  ,
+  
 
   authorizeMission(mission, actor = "Daniel Williamston") {
     return RangerGovernance.evaluate(mission, actor);
