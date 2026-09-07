@@ -11,6 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const progress = document.getElementById("progress");
   const faults = document.getElementById("faults");
   const timeline = document.getElementById("timeline");
+  const rangerForm = document.getElementById("ranger-form");
+const missionInput = document.getElementById("mission-input");
 
   // --------------------------------------------------
   // RANGER STATUS
@@ -147,7 +149,19 @@ document.addEventListener("DOMContentLoaded", () => {
     status: checkRangerStatus,
     mission: sendMission
   };
+// --------------------------------------------------
+// RANGER FORM HANDLER
+// --------------------------------------------------
 
+if (rangerForm) {
+  rangerForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const objective = missionInput ? missionInput.value : "";
+
+    await sendMission(objective);
+  });
+}
   // --------------------------------------------------
   // INITIALIZE
   // --------------------------------------------------
