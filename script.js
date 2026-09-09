@@ -61,7 +61,7 @@ const missionInput = document.getElementById("mission-input");
     setStatus("RANGER PROCESSING MISSION...");
 
     try {
-      const response = await fetch("/api/ranger", {
+      const response = await fetch("https://dainxnexushub.dainxnexushub.workers.dev/api/ranger", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
