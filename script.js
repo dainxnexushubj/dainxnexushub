@@ -4,7 +4,7 @@
 // Version 1.0
 
 document.addEventListener("DOMContentLoaded", () => {
-  const status = document.getElementById("status");
+  const status = document.getElementById("ranger-status");
   const targetGoal = document.getElementById("target-goal");
   const projectStatus = document.getElementById("project-status");
   const nextAction = document.getElementById("next-action");
