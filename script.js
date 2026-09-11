@@ -1,7 +1,7 @@
 // D.A.I.N.X NEXUS
 // RANGER CONTROL CENTER
 // Frontend Controller
-// Version 1.0
+// Version 1.1 - Fixed API Integration
 
 document.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("ranger-status");
@@ -12,7 +12,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const faults = document.getElementById("faults");
   const timeline = document.getElementById("timeline");
   const rangerForm = document.getElementById("ranger-form");
-const missionInput = document.getElementById("mission-input");
+  const missionInput = document.getElementById("mission-input");
+  const rangerSubmit = document.getElementById("ranger-submit");
+
+  // API Configuration
+  const API_BASE = "https://dainxnexushub.dainxnexushub.workers.dev";
+  const API_ENDPOINT = "/api/ranger";
 
   // --------------------------------------------------
   // RANGER STATUS
@@ -26,7 +31,14 @@ const missionInput = document.getElementById("mission-input");
 
   async function checkRangerStatus() {
     try {
-      const response = await fetch("/api/ranger/status");
+      const response = await fetch(`${API_BASE}/api/ranger/status`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        mode: "cors",
+        credentials: "omit"
+      });
 
       if (!response.ok) {
         throw new Error("Ranger status unavailable.");
@@ -58,38 +70,80 @@ const missionInput = document.getElementById("mission-input");
       return null;
     }
 
+    // Disable button during submission
+    if (rangerSubmit) {
+      rangerSubmit.disabled = true;
+      rangerSubmit.textContent = "EXECUTING...";
+    }
+
     setStatus("RANGER PROCESSING MISSION...");
 
     try {
-      const response = await fetch("https://dainxnexushub.dainxnexushub.workers.dev/api/ranger", {
+      const requestBody = {
+        objective: objective.trim(),
+        priority,
+        actor: "Daniel Williamston"
+      };
+
+      console.log("Sending mission to:", `${API_BASE}${API_ENDPOINT}`);
+      console.log("Payload:", requestBody);
+
+      const response = await fetch(`${API_BASE}${API_ENDPOINT}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          "Accept": "application/json"
         },
-        body: JSON.stringify({
-          objective: objective.trim(),
-          priority,
-          actor: "Daniel Williamston"
-        })
+        mode: "cors",
+        credentials: "omit",
+        body: JSON.stringify(requestBody)
       });
 
-      const data = await response.json();
+      console.log("Response status:", response.status);
 
-      if (!response.ok || !data.success) {
+      // Try to parse response
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error("Failed to parse JSON response:", parseError);
+        data = { success: false, error: "Invalid response format" };
+      }
+
+      console.log("Response data:", data);
+
+      if (!response.ok) {
+        setStatus(`MISSION FAILED: ${data.error || response.statusText}`);
+        console.error("Ranger API error:", data);
+        return data;
+      }
+
+      if (!data.success) {
         setStatus("MISSION BLOCKED OR FAILED");
         console.error("Ranger mission error:", data);
         return data;
       }
 
       setStatus("MISSION COMPLETE • MEMORY UPDATED");
-
       updateDashboard(data);
+
+      // Clear the form
+      if (missionInput) {
+        missionInput.value = "";
+      }
 
       return data;
     } catch (error) {
       setStatus("RANGER EXECUTION ERROR");
-      console.error("Ranger execution error:", error);
+      console.error("Ranger execution error:", error.message);
+      console.error("Full error:", error);
       return null;
+    } finally {
+      // Re-enable button
+      if (rangerSubmit) {
+        rangerSubmit.disabled = false;
+        rangerSubmit.textContent = "EXECUTE";
+      }
     }
   }
 
@@ -149,19 +203,21 @@ const missionInput = document.getElementById("mission-input");
     status: checkRangerStatus,
     mission: sendMission
   };
-// --------------------------------------------------
-// RANGER FORM HANDLER
-// --------------------------------------------------
 
-if (rangerForm) {
-  rangerForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
+  // --------------------------------------------------
+  // RANGER FORM HANDLER
+  // --------------------------------------------------
 
-    const objective = missionInput ? missionInput.value : "";
+  if (rangerForm) {
+    rangerForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
 
-    await sendMission(objective);
-  });
-}
+      const objective = missionInput ? missionInput.value : "";
+
+      await sendMission(objective);
+    });
+  }
+
   // --------------------------------------------------
   // INITIALIZE
   // --------------------------------------------------
@@ -170,4 +226,5 @@ if (rangerForm) {
 
   console.log("D.A.I.N.X NEXUS initialized.");
   console.log("RANGER CONTROL CENTER ONLINE.");
+  console.log("API Base:", API_BASE);
 });
