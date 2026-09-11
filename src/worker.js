@@ -83,14 +83,6 @@ export default {
 const objective = body.objective.trim();
 const priority = body.priority || "NORMAL";
 
-return response({
-  success: true,
-  diagnostic: true,
-  message: "POST /api/ranger reached Worker successfully.",
-  objective,
-  priority,
-  actor: RANGER_ACTOR
-});
 
 // Mission Engine owns the mission lifecycle.
 const result = RangerMissionEngine.run(
