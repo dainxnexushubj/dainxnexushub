@@ -1,7 +1,7 @@
 // D.A.I.N.X NEXUS
 // RANGER CONTROL CENTER
 // Frontend Controller
-// Version 1.1 - Fixed API Integration
+// Version 1.2 - Fixed Button Submission
 
 document.addEventListener("DOMContentLoaded", () => {
   const status = document.getElementById("ranger-status");
@@ -215,6 +215,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const objective = missionInput ? missionInput.value : "";
 
       await sendMission(objective);
+    });
+  }
+
+  // Direct button click handler as fallback
+  if (rangerSubmit) {
+    rangerSubmit.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const objective = missionInput ? missionInput.value.trim() : "";
+
+      if (objective) {
+        await sendMission(objective);
+      } else {
+        setStatus("MISSION OBJECTIVE REQUIRED");
+      }
     });
   }
 
