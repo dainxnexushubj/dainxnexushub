@@ -296,6 +296,14 @@ button {
   border-left-color: var(--muted);
 }
 
+.error-message {
+  border-left-color: #c94f4f;
+}
+
+.error-message .message-label {
+  color: #c94f4f;
+}
+
 .ranger-form label {
   display: block;
   margin-bottom: 8px;
