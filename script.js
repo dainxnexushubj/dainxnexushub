@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const rangerForm = document.getElementById("ranger-form");
   const missionInput = document.getElementById("mission-input");
   const rangerSubmit = document.getElementById("ranger-submit");
+  const rangerOutput = document.getElementById("ranger-output");
 
   // API Configuration
   const API_BASE = "https://dainxnexushub.dainxnexushub.workers.dev";
@@ -27,6 +28,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (status) {
       status.textContent = message;
     }
+  }
+
+  // --------------------------------------------------
+  // OUTPUT CONSOLE
+  // --------------------------------------------------
+
+  function appendOutput(label, message, variant = "system-message") {
+    if (!rangerOutput) {
+      return;
+    }
+
+    const entry = document.createElement("div");
+    entry.className = `output-message ${variant}`;
+
+    const labelEl = document.createElement("span");
+    labelEl.className = "message-label";
+    labelEl.textContent = label;
+
+    const textEl = document.createElement("p");
+    textEl.textContent = message;
+
+    entry.appendChild(labelEl);
+    entry.appendChild(textEl);
+
+    rangerOutput.appendChild(entry);
+    rangerOutput.scrollTop = rangerOutput.scrollHeight;
   }
 
   async function checkRangerStatus() {
@@ -77,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     setStatus("RANGER PROCESSING MISSION...");
+    appendOutput("YOU", objective.trim(), "user-message");
 
     try {
       const requestBody = {
@@ -114,17 +142,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!response.ok) {
         setStatus(`MISSION FAILED: ${data.error || response.statusText}`);
+        appendOutput("RANGER", data.error || "Mission failed.", "error-message");
         console.error("Ranger API error:", data);
         return data;
       }
 
       if (!data.success) {
+        const reason =
+          (data.governance && data.governance.reason) ||
+          data.reason ||
+          "Mission blocked or failed.";
         setStatus("MISSION BLOCKED OR FAILED");
+        appendOutput("RANGER", `Mission blocked: ${reason}`, "error-message");
         console.error("Ranger mission error:", data);
         return data;
       }
 
       setStatus("MISSION COMPLETE • MEMORY UPDATED");
+      appendOutput(
+        "RANGER",
+        data.mission
+          ? `Mission "${data.mission.objective}" completed. ${
+              data.execution ? data.execution.message : ""
+            }`.trim()
+          : "Mission completed.",
+        "system-message"
+      );
       updateDashboard(data);
 
       // Clear the form
@@ -218,21 +261,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Direct button click handler as fallback
-  if (rangerSubmit) {
-    rangerSubmit.addEventListener("click", async (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const objective = missionInput ? missionInput.value.trim() : "";
-
-      if (objective) {
-        await sendMission(objective);
-      } else {
-        setStatus("MISSION OBJECTIVE REQUIRED");
-      }
-    });
-  }
+  // NOTE: rangerSubmit is a type="submit" button inside rangerForm,
+  // so clicking it already triggers the form's "submit" event above.
+  // A separate click handler here would fire sendMission a second time
+  // for the same click — removed to stop duplicate mission execution.
 
   // --------------------------------------------------
   // INITIALIZE
